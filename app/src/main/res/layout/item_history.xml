@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="@dimen/history_item_parent_size"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="@dimen/history_item_size"
+        android:layout_height="@dimen/history_item_size">
+
+        <ImageView
+            android:layout_width="@dimen/history_item_size"
+            android:layout_height="@dimen/history_item_size"
+            android:layout_gravity="center"
+            android:background="@drawable/circle"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/initial"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textAllCaps="true"
+            android:textSize="@dimen/history_text_size"
+            android:textStyle=""
+            tools:text="R" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingStart="12dp"
+        android:textSize="11sp"
+        tools:ignore="RtlSymmetry,SmallSp"
+        tools:text="reddit.com" />
+</LinearLayout>
