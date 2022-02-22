@@ -43,7 +43,7 @@ class BrowserActivity : AppCompatActivity() {
         setupEditText()
         setupWebView()
         if (savedInstanceState == null) {
-            webView.loadUrl("https://youtube.com")
+            webView.loadUrl("https://duckduckgo.com/youtube")
         }
         setupImageLoadToggleButton()
         setupHistoryButton()
@@ -59,12 +59,15 @@ class BrowserActivity : AppCompatActivity() {
         val loadImagesFlag = viewModel.loadImages
         settings.apply {
             userAgentString =
-                "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0"
+                "Mozilla/5.0 (X11; Linux i686) AppleWebKit/534.24 (KHTML, like Gecko) Chrome/90.0.4430.212 Large Screen Safari/534.24 GoogleTV/092754youtube.com/tv#"
             blockNetworkImage = loadImagesFlag
             loadsImagesAutomatically = !loadImagesFlag
             javaScriptEnabled = true
             useWideViewPort = true
             loadWithOverviewMode = true
+            domStorageEnabled = true
+            mediaPlaybackRequiresUserGesture = false
+            setNeedInitialFocus(false)
         }
         webView.webChromeClient = MiniWebChromeClient(object : MiniWebChromeClient.Listener {
             override fun onUrlChanged(url: String?) {
@@ -81,6 +84,9 @@ class BrowserActivity : AppCompatActivity() {
                 } catch (e: MalformedURLException) {
                     e.printStackTrace()
                 }
+                val visibility = if (url.contains("youtube.com")) View.GONE else View.VISIBLE
+                binding.toolbar.visibility = visibility
+                binding.progress.visibility = visibility
             }
 
             override fun onProgressChanged(progress: Int) {
