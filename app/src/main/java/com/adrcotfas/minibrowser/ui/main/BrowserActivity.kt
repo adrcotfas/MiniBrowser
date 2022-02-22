@@ -11,6 +11,9 @@ import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import com.adrcotfas.minibrowser.R
 import com.adrcotfas.minibrowser.databinding.ActivityMainBinding
@@ -27,6 +30,7 @@ import java.util.concurrent.Executors
 class BrowserActivity : AppCompatActivity() {
     private lateinit var viewModel: UrlViewModel
     private lateinit var binding: ActivityMainBinding
+
     private lateinit var webView: WebView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +47,7 @@ class BrowserActivity : AppCompatActivity() {
         }
         setupImageLoadToggleButton()
         setupHistoryButton()
+        hideSystemBars()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -53,7 +58,8 @@ class BrowserActivity : AppCompatActivity() {
         val settings = webView.settings
         val loadImagesFlag = viewModel.loadImages
         settings.apply {
-            userAgentString = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0"
+            userAgentString =
+                "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0"
             blockNetworkImage = loadImagesFlag
             loadsImagesAutomatically = !loadImagesFlag
             javaScriptEnabled = true
@@ -83,7 +89,7 @@ class BrowserActivity : AppCompatActivity() {
                     binding.progress.visibility = View.INVISIBLE
                 }
             }
-        })
+        }, binding.videoLayout)
     }
 
     private fun setupEditText() {
@@ -161,6 +167,17 @@ class BrowserActivity : AppCompatActivity() {
             inputMethodManager.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
         }
     }
+
+    private fun hideSystemBars() {
+        val windowInsetsController =
+            ViewCompat.getWindowInsetsController(window.decorView) ?: return
+        // Configure the behavior of the hidden system bars
+        windowInsetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        // Hide both the status bar and the navigation bar
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+    }
+
 
     companion object {
         private const val TAG = "BrowserActivity"
