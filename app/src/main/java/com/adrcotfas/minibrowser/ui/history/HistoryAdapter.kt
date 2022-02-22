@@ -1,71 +1,48 @@
-package com.adrcotfas.minibrowser.ui.history;
+package com.adrcotfas.minibrowser.ui.history
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import androidx.recyclerview.widget.RecyclerView
+import com.adrcotfas.minibrowser.ui.history.HistoryAdapter.HistoryViewHolder
+import android.view.ViewGroup
+import android.view.LayoutInflater
+import android.view.View
+import com.adrcotfas.minibrowser.R
+import android.widget.LinearLayout
+import android.widget.TextView
+import java.util.ArrayList
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.adrcotfas.minibrowser.R;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder> {
-
-    interface Listener {
-        void onClick(String url);
+class HistoryAdapter internal constructor(private val listener: Listener) :
+    RecyclerView.Adapter<HistoryViewHolder>() {
+    internal interface Listener {
+        fun onClick(url: String)
     }
 
-    private List<String> data = new ArrayList<>();
-    private final Listener listener;
-
-    HistoryAdapter(Listener listener) {
-        this.listener = listener;
+    private var data: List<String> = ArrayList()
+    fun setData(data: List<String>) {
+        this.data = data
     }
 
-    public void setData(List<String> data) {
-        this.data = data;
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_history, parent, false)
+        return HistoryViewHolder(view)
     }
 
-    @NotNull
-    @Override
-    public HistoryViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_history, parent, false);
-        return new HistoryViewHolder(view);
+    override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
+        holder.bind(data[position])
+        holder.root.setOnClickListener { listener.onClick(data[position]) }
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull @NotNull HistoryViewHolder holder, int position) {
-        holder.bind(data.get(position));
-        holder.root.setOnClickListener(v -> listener.onClick(data.get(position)));
+    override fun getItemCount(): Int {
+        return data.size
     }
 
-    @Override
-    public int getItemCount() {
-        return data.size();
-    }
-
-    public static class HistoryViewHolder extends RecyclerView.ViewHolder {
-        public final LinearLayout root;
-        private final TextView initial;
-        private final TextView url;
-
-        public HistoryViewHolder(@NotNull View itemView) {
-            super(itemView);
-            root = itemView.findViewById(R.id.root);
-            initial = itemView.findViewById(R.id.initial);
-            url = itemView.findViewById(R.id.url);
+    class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val root: LinearLayout = itemView.findViewById(R.id.root)
+        private val initial: TextView = itemView.findViewById(R.id.initial)
+        private val url: TextView = itemView.findViewById(R.id.url)
+        fun bind(data: String) {
+            initial.text = data[0].toString()
+            url.text = data
         }
 
-        void bind(String data) {
-            initial.setText(String.valueOf(data.charAt(0)));
-            url.setText(data);
-        }
     }
 }

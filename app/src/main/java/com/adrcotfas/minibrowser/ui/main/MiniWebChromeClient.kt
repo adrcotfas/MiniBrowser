@@ -1,26 +1,23 @@
-package com.adrcotfas.minibrowser.ui.main;
+package com.adrcotfas.minibrowser.ui.main
 
-import android.webkit.WebChromeClient;
-import android.webkit.WebView;
+import android.view.View
+import android.webkit.WebChromeClient
+import android.webkit.WebView
 
-public class MiniWebChromeClient extends WebChromeClient {
-
-    interface Listener {
-        void onUrlChanged(String url);
-        void onProgressChanged(int progress);
+class MiniWebChromeClient internal constructor(private val listener: Listener) : WebChromeClient() {
+    internal interface Listener {
+        fun onUrlChanged(url: String?)
+        fun onProgressChanged(progress: Int)
     }
 
-    private final Listener listener;
-
-    MiniWebChromeClient(Listener listener) {
-        this.listener = listener;
-    }
-
-    @Override
-    public void onProgressChanged(WebView view, int progress) {
-        listener.onProgressChanged(progress);
+    override fun onProgressChanged(view: WebView, progress: Int) {
+        listener.onProgressChanged(progress)
         if (progress == 100) {
-            listener.onUrlChanged(view.getUrl());
+            listener.onUrlChanged(view.url)
         }
+    }
+
+    override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+        super.onShowCustomView(view, callback)
     }
 }

@@ -1,9 +1,7 @@
-package com.adrcotfas.minibrowser;
+package com.adrcotfas.minibrowser
 
-import android.app.Application;
-
-import dagger.hilt.android.HiltAndroidApp;
+import dagger.hilt.android.HiltAndroidApp
+import android.app.Application
 
 @HiltAndroidApp
-public class BrowserApplication extends Application {
-}
+class BrowserApplication : Application()

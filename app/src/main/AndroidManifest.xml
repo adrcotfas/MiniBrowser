@@ -13,7 +13,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MiniBrowser"
         android:windowSoftInputMode="stateHidden">
-        <activity android:name=".ui.main.BrowserActivity">
+        <activity android:name=".ui.main.BrowserActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize"
+            android:hardwareAccelerated="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

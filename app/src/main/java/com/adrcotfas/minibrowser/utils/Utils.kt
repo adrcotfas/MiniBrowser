@@ -1,30 +1,31 @@
-package com.adrcotfas.minibrowser.utils;
+package com.adrcotfas.minibrowser.utils
 
-public class Utils {
-
-    public static String addUrlPrefix(String url) {
+object Utils {
+    fun addUrlPrefix(url_: String): String {
+        var url = url_
         if (!url.startsWith("https://")) {
             if (!url.startsWith("www.")) {
-                url = "www." + url;
+                url = "www.$url"
             }
-            url = "https://" + url;
+            url = "https://$url"
         }
-        return url;
+        return url
     }
 
-    public static String getSearchUrl(String url) {
-        return "https://duckduckgo.com/?q=" + url;
+    fun getSearchUrl(url: String): String {
+        return "https://duckduckgo.com/?q=$url"
     }
 
-    public static String stripHostPrefix(String url) {
-        String www = "www.";
+    fun stripHostPrefix(url_: String): String {
+        var url = url_
+        val www = "www."
         if (url.startsWith(www)) {
-            url = url.substring(www.length());
+            url = url.substring(www.length)
         }
-        String mobile = "m.";
+        val mobile = "m."
         if (url.startsWith(mobile)) {
-            url = url.substring(mobile.length());
+            url = url.substring(mobile.length)
         }
-        return url;
+        return url
     }
 }

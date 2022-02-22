@@ -1,11 +1,13 @@
-package com.adrcotfas.minibrowser.cache;
+package com.adrcotfas.minibrowser.cache
 
-import androidx.room.Database;
-import androidx.room.RoomDatabase;
+import androidx.room.Database
+import androidx.room.RoomDatabase
 
-@Database(entities = {UrlEntity.class}, version = 1, exportSchema = false)
-public abstract class UrlDatabase extends RoomDatabase {
+@Database(entities = [UrlEntity::class], version = 1, exportSchema = false)
+abstract class UrlDatabase : RoomDatabase() {
+    abstract fun urlDao(): UrlDao
 
-    public abstract UrlDao urlDao();
-    public static final String DATABASE_NAME = "history_db";
+    companion object {
+        const val DATABASE_NAME = "history_db"
+    }
 }

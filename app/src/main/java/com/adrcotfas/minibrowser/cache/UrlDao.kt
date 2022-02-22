@@ -1,22 +1,19 @@
-package com.adrcotfas.minibrowser.cache;
+package com.adrcotfas.minibrowser.cache
 
-import androidx.lifecycle.LiveData;
-import androidx.room.Dao;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
-
-import java.util.List;
+import androidx.room.Dao
+import androidx.room.OnConflictStrategy
+import androidx.lifecycle.LiveData
+import androidx.room.Insert
+import androidx.room.Query
 
 @Dao
-public interface UrlDao {
-
+interface UrlDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(UrlEntity image);
+    fun insert(image: UrlEntity)
 
     @Query("SELECT * FROM UrlEntity ORDER BY id DESC LIMIT 5")
-    LiveData<List<UrlEntity>> get();
+    fun get(): LiveData<List<UrlEntity>>
 
     @Query("DELETE FROM UrlEntity")
-    void clear();
+    fun clear()
 }

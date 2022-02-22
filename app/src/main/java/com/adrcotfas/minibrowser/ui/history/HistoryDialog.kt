@@ -1,73 +1,67 @@
-package com.adrcotfas.minibrowser.ui.history;
+package com.adrcotfas.minibrowser.ui.history
 
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import androidx.lifecycle.ViewModelProvider;
-
-import com.adrcotfas.minibrowser.cache.UrlEntity;
-import com.adrcotfas.minibrowser.databinding.DialogHistoryBinding;
-import com.adrcotfas.minibrowser.ui.UrlViewModel;
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
-
-import dagger.hilt.android.AndroidEntryPoint;
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
+import com.adrcotfas.minibrowser.cache.UrlEntity
+import com.adrcotfas.minibrowser.databinding.DialogHistoryBinding
+import com.adrcotfas.minibrowser.ui.UrlViewModel
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import dagger.hilt.android.AndroidEntryPoint
+import java.util.concurrent.Executors
 
 @AndroidEntryPoint
-public class HistoryDialog extends BottomSheetDialogFragment {
-
-    public interface Listener {
-        void onClicked(String url);
+class HistoryDialog : BottomSheetDialogFragment() {
+    interface Listener {
+        fun onClicked(url: String)
     }
 
-    private UrlViewModel viewModel;
+    private lateinit var viewModel: UrlViewModel
+    private lateinit var listener: Listener
 
-    private final HistoryAdapter adapter = new HistoryAdapter(new HistoryAdapter.Listener() {
-        @Override
-        public void onClick(String url) {
-            listener.onClicked(url);
-            dismiss();
+    private val adapter = HistoryAdapter(object : HistoryAdapter.Listener {
+        override fun onClick(url: String) {
+            listener.onClicked(url)
+            dismiss()
         }
-    });
+    })
 
-    private Listener listener;
-
-    public static HistoryDialog newInstance(Listener listener) {
-        HistoryDialog dialog = new HistoryDialog();
-        dialog.listener = listener;
-        return dialog;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(this).get(UrlViewModel::class.java)
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(this).get(UrlViewModel.class);
-    }
-
-    @Override
-    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        com.adrcotfas.minibrowser.databinding.DialogHistoryBinding binding = DialogHistoryBinding.inflate(getLayoutInflater());
-
-        binding.buttonClear.setOnClickListener(
-                v -> Executors.newSingleThreadExecutor().execute(() -> viewModel.clear()));
-
-        binding.recycler.setAdapter(adapter);
-        viewModel.getUrls().observe(getViewLifecycleOwner(), urlEntities -> {
-            List<String> urls = new ArrayList<>();
-            for (UrlEntity e : urlEntities) {
-                urls.add(e.url);
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        val binding = DialogHistoryBinding.inflate(
+            layoutInflater
+        )
+        binding.buttonClear.setOnClickListener {
+            Executors.newSingleThreadExecutor().execute { viewModel.clear() }
+        }
+        binding.recycler.adapter = adapter
+        viewModel.urls.observe(viewLifecycleOwner) { urlEntities: List<UrlEntity> ->
+            val urls: MutableList<String> = ArrayList()
+            for (e in urlEntities) {
+                urls.add(e.url)
             }
-            adapter.setData(urls);
-            adapter.notifyDataSetChanged();
-        });
+            adapter.setData(urls)
+            adapter.notifyDataSetChanged()
+        }
+        return binding.root
+    }
 
-        return binding.getRoot();
+    companion object {
+        @JvmStatic
+        fun newInstance(listener: Listener): HistoryDialog {
+            val dialog = HistoryDialog()
+            dialog.listener = listener
+            return dialog
+        }
     }
 }

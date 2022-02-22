@@ -1,163 +1,165 @@
-package com.adrcotfas.minibrowser.ui.main;
+package com.adrcotfas.minibrowser.ui.main
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.lifecycle.ViewModelProvider;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-
-import com.adrcotfas.minibrowser.R;
-import com.adrcotfas.minibrowser.databinding.ActivityMainBinding;
-import com.adrcotfas.minibrowser.ui.UrlViewModel;
-import com.adrcotfas.minibrowser.ui.history.HistoryDialog;
-import com.adrcotfas.minibrowser.utils.Utils;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.concurrent.Executors;
-
-import dagger.hilt.android.AndroidEntryPoint;
-
-import static com.adrcotfas.minibrowser.utils.Utils.addUrlPrefix;
-import static com.adrcotfas.minibrowser.utils.Utils.getSearchUrl;
-import static com.adrcotfas.minibrowser.utils.Utils.stripHostPrefix;
+import android.annotation.SuppressLint
+import android.os.Bundle
+import android.util.Log
+import android.view.KeyEvent
+import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.ViewModelProvider
+import com.adrcotfas.minibrowser.R
+import com.adrcotfas.minibrowser.databinding.ActivityMainBinding
+import com.adrcotfas.minibrowser.ui.UrlViewModel
+import com.adrcotfas.minibrowser.ui.history.HistoryDialog
+import com.adrcotfas.minibrowser.ui.history.HistoryDialog.Companion.newInstance
+import com.adrcotfas.minibrowser.utils.Utils
+import dagger.hilt.android.AndroidEntryPoint
+import java.net.MalformedURLException
+import java.net.URL
+import java.util.concurrent.Executors
 
 @AndroidEntryPoint
-public class BrowserActivity extends AppCompatActivity {
+class BrowserActivity : AppCompatActivity() {
+    private lateinit var viewModel: UrlViewModel
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var webView: WebView
 
-    private static final String TAG = "BrowserActivity";
-
-    private UrlViewModel viewModel;
-
-    private ActivityMainBinding binding;
-    private WebView webView;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        viewModel = new ViewModelProvider(this).get(UrlViewModel.class);
-        binding.setViewmodel(viewModel);
-        setupEditText();
-        setupWebView();
-        setupImageLoadToggleButton();
-        setupHistoryButton();
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        viewModel = ViewModelProvider(this).get(UrlViewModel::class.java)
+        binding.viewmodel = viewModel
+        setupEditText()
+        setupWebView()
+        setupImageLoadToggleButton()
+        setupHistoryButton()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private void setupWebView() {
-        webView = binding.webView;
-        webView.setWebViewClient(new WebViewClient());
-        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-
-        WebSettings settings = webView.getSettings();
-        boolean loadImagesFlag = viewModel.getLoadImages();
-        settings.setBlockNetworkImage(loadImagesFlag);
-        settings.setLoadsImagesAutomatically(!loadImagesFlag);
-        settings.setJavaScriptEnabled(true);
-        settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(true);
-        webView.setWebChromeClient(new MiniWebChromeClient(new MiniWebChromeClient.Listener() {
-            @Override
-            public void onUrlChanged(String url) {
-                    binding.editText.setText(url);
-                    try {
-                        URL u = new URL(webView.getUrl());
-                        String host = stripHostPrefix(u.getHost());
-                        if (!host.isEmpty()) {
-                            Executors.newSingleThreadExecutor().execute(() -> viewModel.insert(host));
-                        }
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
+    private fun setupWebView() {
+        webView = binding.webView
+        webView.webViewClient = WebViewClient()
+        webView.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+        val settings = webView.settings
+        val loadImagesFlag = viewModel.loadImages
+        settings.apply {
+            userAgentString = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0"
+            blockNetworkImage = loadImagesFlag
+            loadsImagesAutomatically = !loadImagesFlag
+            javaScriptEnabled = true
+            useWideViewPort = true
+            loadWithOverviewMode = true
+        }
+        webView.webChromeClient = MiniWebChromeClient(object : MiniWebChromeClient.Listener {
+            override fun onUrlChanged(url: String?) {
+                if (url.isNullOrEmpty()) {
+                    return
+                }
+                binding.editText.setText(url)
+                try {
+                    val u = URL(webView.url)
+                    val host = Utils.stripHostPrefix(u.host)
+                    if (host.isNotEmpty()) {
+                        Executors.newSingleThreadExecutor().execute { viewModel.insert(host) }
                     }
-            }
-            @Override
-            public void onProgressChanged(int progress) {
-                binding.progress.setProgress(progress);
-                if (progress == 100) {
-                    binding.progress.setVisibility(View.INVISIBLE);
+                } catch (e: MalformedURLException) {
+                    e.printStackTrace()
                 }
             }
-        }));
+
+            override fun onProgressChanged(progress: Int) {
+                binding.progress.progress = progress
+                if (progress == 100) {
+                    binding.progress.visibility = View.INVISIBLE
+                }
+            }
+        })
     }
 
-    private void setupEditText() {
-        binding.editText.setOnKeyListener((v, keyCode, event) -> {
+    private fun setupEditText() {
+        binding.editText.setOnKeyListener { _: View?, keyCode: Int, _: KeyEvent? ->
             if (keyCode == KeyEvent.KEYCODE_ENTER) {
-                String userInput = binding.editText.getText().toString();
+                val userInput = binding.editText.text.toString()
 
                 // for simplicity's sake, redirect input not containing "." to a search engine
                 // else add the required prefix
-                String url = (!userInput.contains(".")) ? getSearchUrl(userInput): addUrlPrefix(userInput);
-
-                if (!url.isEmpty()) {
-                    binding.progress.setVisibility(View.VISIBLE);
-                    webView.loadUrl(url);
-                    hideKeyboard();
+                val url =
+                    if (!userInput.contains(".")) Utils.getSearchUrl(userInput) else Utils.addUrlPrefix(
+                        userInput
+                    )
+                if (url.isNotEmpty()) {
+                    binding.progress.visibility = View.VISIBLE
+                    webView.loadUrl(url)
+                    hideKeyboard()
                 }
-                return true;
+                return@setOnKeyListener true
             }
-            return false;
-        });
+            false
+        }
     }
 
     /**
      * Toggle image requests blocking and persist the last value
      */
-    private void setupImageLoadToggleButton() {
-        binding.buttonToggleImages.parent.setOnClickListener(v -> {
-            boolean flag = !webView.getSettings().getBlockNetworkImage();
-            Log.d(TAG, "toggle image loading: " + flag);
-            webView.getSettings().setBlockNetworkImage(flag);
-            webView.getSettings().setLoadsImagesAutomatically(!flag);
-            viewModel.setLoadImages(flag);
-            updateLoadImagesButton(!flag);
-            webView.reload();
-        });
+    private fun setupImageLoadToggleButton() {
+        binding.buttonToggleImages.parent.setOnClickListener { v: View? ->
+            val flag = !webView.settings.blockNetworkImage
+            Log.d(TAG, "toggle image loading: $flag")
+            webView.settings.blockNetworkImage = flag
+            webView.settings.loadsImagesAutomatically = !flag
+            viewModel.loadImages = flag
+            updateLoadImagesButton(!flag)
+            webView.reload()
+        }
     }
 
-    private void updateLoadImagesButton(boolean flag) {
+    private fun updateLoadImagesButton(flag: Boolean) {
         binding.buttonToggleImages.buttonEdit.setImageDrawable(
-                ResourcesCompat.getDrawable(getResources(),
-                        flag ? R.drawable.ic_image : R.drawable.ic_image_off, null));
+            ResourcesCompat.getDrawable(
+                resources,
+                if (flag) R.drawable.ic_image else R.drawable.ic_image_off, null
+            )
+        )
     }
 
-    private void setupHistoryButton() {
-        binding.buttonShowHistory.parent.setOnClickListener(
-                v -> HistoryDialog.newInstance(url -> webView.loadUrl(Utils.addUrlPrefix(url)))
-                        .show(getSupportFragmentManager(), null));
+    private fun setupHistoryButton() {
+        binding.buttonShowHistory.parent.setOnClickListener {
+            newInstance(
+                object : HistoryDialog.Listener {
+                    override fun onClicked(url: String) {
+                        webView.loadUrl(Utils.addUrlPrefix(url))
+                    }
+                })
+                .show(supportFragmentManager, null)
+        }
     }
 
     /**
      * Handle back navigation in the WebView
      */
-    @Override
-    public void onBackPressed() {
+    override fun onBackPressed() {
         if (webView.canGoBack()) {
-            webView.goBack();
+            webView.goBack()
         } else {
-            super.onBackPressed();
+            super.onBackPressed()
         }
     }
 
-    private void hideKeyboard() {
-        InputMethodManager inputMethodManager =
-                (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-        if(inputMethodManager.isAcceptingText()) {
-            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+    private fun hideKeyboard() {
+        val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        if (inputMethodManager.isAcceptingText) {
+            inputMethodManager.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
         }
+    }
+
+    companion object {
+        private const val TAG = "BrowserActivity"
     }
 }
