@@ -38,6 +38,9 @@ class BrowserActivity : AppCompatActivity() {
         binding.viewmodel = viewModel
         setupEditText()
         setupWebView()
+        if (savedInstanceState == null) {
+            webView.loadUrl("https://youtube.com")
+        }
         setupImageLoadToggleButton()
         setupHistoryButton()
     }
