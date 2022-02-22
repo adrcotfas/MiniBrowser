@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.InputMethodManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -156,10 +157,21 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
+    private fun simulateKeyPress(key: Int) {
+        val inputConnection = BaseInputConnection(webView, true)
+        val downEvent = KeyEvent(KeyEvent.ACTION_DOWN, key)
+        val upEvent = KeyEvent(KeyEvent.ACTION_UP, key)
+        inputConnection.sendKeyEvent(downEvent)
+        inputConnection.sendKeyEvent(upEvent)
+    }
+
     /**
      * Handle back navigation in the WebView
      */
     override fun onBackPressed() {
+        if (webView.url?.contains("youtube.com") == true) {
+            simulateKeyPress(KeyEvent.KEYCODE_ESCAPE)
+        }
         if (webView.canGoBack()) {
             webView.goBack()
         } else {
